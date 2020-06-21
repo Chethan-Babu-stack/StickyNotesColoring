@@ -353,12 +353,9 @@ function init() {
     btnColor.addEventListener("click", function () { clusterColorStickies(); }, false);
 
     
-    // XIAO
     // Adding event listener for searching sticky based on color
-    // var btnSearchNote = document.getElementById("searchNote");
-    // var searchText = document.createElement("input");
-    
-    // btnColor.addEventListener("click", function () { searchSticky(text); }, false);
+    var btnSearchNote = document.getElementById("searchNote");
+    btnSearchNote.addEventListener("click", function () { searchSticky(document.querySelector("input").value); }, false);
 
     loadData();
     // Add event listeners
@@ -380,11 +377,11 @@ function clusterColorStickies() {
     var width = window.screen.width;
 
 
-    var c1_x1 = 50, c1_y1 = 50;// c1_x2 = width/2 , c1_y2 = height/2; 
-    var c1_xstart = 50, c1_ystart = 50;
-    var c2_x1 = width/2, c2_y1 = 50;// c2_x2 = width, c2_x2 = height/2;
-    var c3_x1 = 50, c3_y1 = height/2 + 40; ;// c3_x2 = width/2, c3_y2 = height;
-    var c4_x1 = width/2, c4_y1 = height/2 + 40;// c4_x2 = width, c4_y2 = height;
+    var c1_x1 = 0, c1_y1 = 0;
+    var c1_xstart = 0, c1_ystart = 0;
+    var c2_x1 = width/2, c2_y1 = 0;
+    var c3_x1 = 0, c3_y1 = height/2; 
+    var c4_x1 = width/2, c4_y1 = height/2;
 
     for (var i = 0; i < localStorage.length; i++) {
         var key = localStorage.key(i);
@@ -400,7 +397,7 @@ function clusterColorStickies() {
             }
             else{
                 c1_x1+=180;
-                c1_y1 = 50;
+                c1_y1 = 0;
             }
             if((c1_x1+180) > width/2){
                 c1_xstart += 20;
@@ -420,7 +417,7 @@ function clusterColorStickies() {
             }
             else{
                 c2_x1+=180;
-                c2_y1 = 50;
+                c2_y1 = 0;
             }
         }
         if(value[0].color == "#99CCFF"){
@@ -447,12 +444,37 @@ function clusterColorStickies() {
                 c4_y1 = height/2;
             }
         }
-
     
     }
 }
 
 
-function searchSticky(){
+function searchSticky(search_text){
+
+    var count = 0;
+    var sticky_key = 0;
+
+    // console.log(search_text);
+    for (var i = 0; i < localStorage.length; i++) {
+        var key = localStorage.key(i);
+        var values = localStorage.getItem(key);
+        var value = JSON.parse(values);
+
+
+        var str1 = value[0].text; // Text in stickies
+        var n = str1.search(new RegExp(search_text, "i"));
+        if( n!= -1)break;
+        // console.log(str1);
+        // console.log(n);
+        // if(n>count){
+        //     count = n;
+        //     sticky_key = key;
+        // }
+    }
+    var height = window.screen.height/2;
+    var width = window.screen.width/2;
+    document.getElementById(key).style.left = height + "px";
+    document.getElementById(key).style.top = width + "px";
+    
 
 }
