@@ -9,7 +9,7 @@ function adjustToFreezeWidth(rootSvg) {
     rootSvg.removeAttribute("height");
  
     var setWidth = windowWidth;
-    var setHeight = windowHeight;//(setWidth * viewBoxHeight) / viewBoxWidth;
+    var setHeight = windowHeight; //(setWidth * viewBoxHeight) / viewBoxWidth;
     rootSvg.setAttribute("width", setWidth);
     rootSvg.setAttribute("height", setHeight);
 }

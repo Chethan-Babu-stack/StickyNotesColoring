@@ -15,7 +15,7 @@ function addNote(key = 0, values = []) {
     }
     // Location when "add" was hit
     if (divLeft != 0) {
-        divLeft += 200; 
+        divLeft += 200;
         if (divLeft >= 1200) {
             divTop += 200;
             divLeft = 50;
@@ -38,7 +38,7 @@ function addNote(key = 0, values = []) {
         var values = [];
         var initValue = {};
         initValue['text'] = " ";
-        initValue['color'] = 'green';
+        initValue['color'] = '#CCFFCC';
         initValue['notePositionLeft'] = divLeft;
         initValue['notePositionTop'] = divTop;
         values.push(initValue);
@@ -56,7 +56,7 @@ function addNote(key = 0, values = []) {
 
 
     // Operations supported on sticky note
-// ==============================================================================================
+    // ==============================================================================================
     // Add note img
     var addImg = document.createElement("img");
     addImg.setAttribute("src", "images/icon-add.png");
@@ -74,43 +74,53 @@ function addNote(key = 0, values = []) {
     delImg.setAttribute("onclick", "deleteNote('" + id + "')");
     titleDiv.appendChild(delImg);
 
-// ==============================================================================================
-        // Set color of the background
-        var colorBg = document.createElement("select");
+    // ==============================================================================================
+    // Set color of the background
+    var colorBg = document.createElement("select");
 
-        colorBg.setAttribute("class", "colorBg");
-        colorBg.options.add(new Option("", "#CCFFCC"));
-        colorBg.options.add(new Option("", "#FFCCCC"));
-        colorBg.options.add(new Option("", "#99CCFF"));
-        colorBg.options.add(new Option("", "#FFFFCC"));
-        colorBg.setAttribute("onclick", "changeColor('" + id + "')");
-        if(values[0]['color']){
-            mainDiv.style.backgroundColor = values[0]['color'];
-        }
-        titleDiv.appendChild(colorBg);
-    
-        // Save button
-        var saveImg = document.createElement("img");
-        saveImg.setAttribute("src", "images/icon-save.png");
-        saveImg.setAttribute("class", "save");
-        // Add note
-        saveImg.setAttribute("onclick", "saveNote('" + id + "')");
-        titleDiv.appendChild(saveImg);
+    colorBg.setAttribute("class", "colorBg");
+    colorBg.options.add(new Option("", "#CCFFCC"));
+    colorBg.options.add(new Option("", "#FFCCCC"));
+    colorBg.options.add(new Option("", "#99CCFF"));
+    colorBg.options.add(new Option("", "#FFFFCC"));
+    colorBg.setAttribute("onclick", "changeColor('" + id + "')");
+    if (values[0]['color']) {
+        mainDiv.style.backgroundColor = values[0]['color'];
+    }
+    titleDiv.appendChild(colorBg);
+
+    // Save button
+    var saveImg = document.createElement("img");
+    saveImg.setAttribute("src", "images/icon-save.png");
+    saveImg.setAttribute("class", "save");
+    // Add note
+    saveImg.setAttribute("onclick", "saveNote('" + id + "')");
+    titleDiv.appendChild(saveImg);
 
     //second only text input editable
     var contentDiv = document.createElement("div");
-    if (values[0]['text']) {
-        var txtDiv = document.createTextNode(values[0]['text']);
-        contentDiv.appendChild(txtDiv);
-    }
+    // if (values[0]['text']) {
+    //     var txtDiv = document.createTextNode(values[0]['text']);
+    //     contentDiv.appendChild(txtDiv);
+    // }
+    contentDiv.innerText = values[0]['text'];
+
     contentDiv.setAttribute("class", "noteContent");
     contentDiv.setAttribute("contenteditable", "true");
 
     contentDiv.setAttribute("onblur", "saveNote('" + id + "')");
 
+    var inputLimit = 80;
+    // var intNum = document.createElement("div");	
+    var numSpan = document.createElement("span");
+    numSpan.setAttribute("class", "counter");
+    // numSpan.innerText = "0/" + inputLimit;
+
     mainDiv.appendChild(titleDiv);
     mainDiv.appendChild(contentDiv);
+    mainDiv.appendChild(numSpan);
     document.body.appendChild(mainDiv);
+    limitInput(contentDiv,inputLimit);
 }
 
 // Move the note
@@ -122,33 +132,83 @@ var _offsetY = 0;
 var z = 0;
 var noteLocation;
 
+function limitInput(noteContent, length = 10) {
+    var counter = noteContent.parentNode.childNodes[2];
+    input = noteContent;
+    settings = {
+        maxLen: length,
+    }
+    keys = {
+        'backspace': 8,
+        'shift': 16,
+        'ctrl': 17,
+        'alt': 18,
+        'delete': 46,
+        // 'cmd':	
+        'leftArrow': 37,
+        'upArrow': 38,
+        'rightArrow': 39,
+        'downArrow': 40,
+    }
+    utils = {
+        special: {},
+        navigational: {},
+        isSpecial(e) {
+            return typeof this.special[e.keyCode] !== 'undefined';
+        },
+        isNavigational(e) {
+            return typeof this.navigational[e.keyCode] !== 'undefined';
+        }
+    }
+    utils.special[keys['backspace']] = true;
+    utils.special[keys['shift']] = true;
+    utils.special[keys['ctrl']] = true;
+    utils.special[keys['alt']] = true;
+    utils.special[keys['delete']] = true;
+    utils.navigational[keys['upArrow']] = true;
+    utils.navigational[keys['downArrow']] = true;
+    utils.navigational[keys['leftArrow']] = true;
+    utils.navigational[keys['rightArrow']] = true;
+    input.addEventListener('keydown', function (event) {
+        let len = event.target.innerText.trim().length;
+        hasSelection = false;
+        selection = window.getSelection();
+        isSpecial = utils.isSpecial(event);
+        isNavigational = utils.isNavigational(event);
+        // counter.innerHTML = len + "/" + length;
+        if (selection) {
+            hasSelection = !!selection.toString();
+        }
+        if (isSpecial || isNavigational) {
+            return true;
+        }
+        if (len >= settings.maxLen && !hasSelection) {
+            event.preventDefault();
+            return false;
+        }
+    });
+}
+
 function mousedownHandler(e) {
 
-    //console.log(e.target);
     if (e.target.className == 'noteTitle') {
         //locate the note
         dragObj = e.target.parentNode;
-
+        e.preventDefault();
 
         var t = dragObj.style.top;
         var l = dragObj.style.left;
         z += 1;
         dragObj.setAttribute("style", "top:" + t + ";left:" + l + ";z-index:" + z);
 
-        _startX = e.clientX;
-        _startY = e.clientY;
+        _startX = e.targetTouches[0].clientX;
+        _startY = e.targetTouches[0].clientY;
         _offsetX = dragObj.offsetLeft;
         _offsetY = dragObj.offsetTop;
 
-        document.addEventListener("mousemove", mousemoveHandler, false);
-        console.log("title---------------");
-        console.log(e.clientX);
-        console.log(e.clientY);
-        console.log(_offsetX);
-        console.log(_offsetY);
-        console.log(dragObj.style.left);
-        console.log(dragObj.style.top);
-
+        document.addEventListener("touchmove", mousemoveHandler, false);
+        //dierctly way to do	
+        $('html,body').css('height', '100%').css('overflow', 'hidden');
     }
     if (e.target.className == "noteContent") {
         console.log("notecontent touched");
@@ -156,11 +216,9 @@ function mousedownHandler(e) {
     }
 }
 
-// Anke lehmann's code
+// Anke Lehmann's code
 function addTextInput(svgTxtElement, svgContent, x, y) {
     // when text input flag triggered
-    console.log(x);
-    console.log(y);
     var input = document.createElement("input");
     input.setAttribute("id", "tbInputText");
 
@@ -234,14 +292,7 @@ function saveNote(key) {
     var textValueList = [];
     //array for text svg as x,y,and textcontent
 
-    console.log(obj.childNodes[1].firstChild);
-    console.log(obj.childNodes[1].firstChild.textContent);
-    if (obj.childNodes[1].firstChild == null) {
-        var text = document.createTextNode(" ");
-        text.textContent = " ";
-        obj.childNodes[1].appendChild(text);
-    }
-    value['text'] = obj.childNodes[1].firstChild.textContent;
+    value['text'] = (obj.childNodes[1].innerText);
 
     var color = obj.firstElementChild.childNodes[2];
     var selectedColor = color.options[color.options.selectedIndex].value;
@@ -287,7 +338,7 @@ function loadData() {
 function deleteNote(key) {
     var obj = document.getElementById(key);
     obj.parentNode.removeChild(obj);
-    //当点击X按钮时，删除该便利贴及localStorage的内容
+    // localStorage
     localStorage.removeItem(key);
 }
 //clear all
@@ -299,13 +350,12 @@ function deleteNotesAll() {
 
 function changeColor(id) {
     var obj = document.getElementById(id);
-    var color = obj.firstElementChild.lastElementChild;
+    var color = obj.firstElementChild.childNodes[2];
     //just a guessing
     var selectedColor = color.options[color.options.selectedIndex].value;
 
     obj.style.backgroundColor = selectedColor;
     saveNote(id);
-
 
 }
 
@@ -323,12 +373,21 @@ function link(idArray) {
 
 }
 function mouseupHandler(e) {
-    document.removeEventListener("mousemove", mousemoveHandler, false);
+    // //after moving it will save the note automatically
+    $('html,body').removeAttr('style');
+    document.removeEventListener("touchmove", mousemoveHandler, false);
+    saveNote(e.target.parentNode.id);
+
+    // document.removeEventListener("mousemove", mousemoveHandler, false);
+
 }
 function mousemoveHandler(e) {
-    dragObj.style.left = (_offsetX + e.clientX - _startX) + 'px';
-    dragObj.style.top = (_offsetY + e.clientY - _startY) + 'px';
-
+    // // for page not moving when moving the note
+    // e.preventDefault();
+    dragObj.style.left = (_offsetX + e.targetTouches[0].clientX - _startX) + 'px';
+    dragObj.style.top = (_offsetY + e.targetTouches[0].clientY - _startY) + 'px';
+    // dragObj.style.left = (_offsetX + e.clientX - _startX) + 'px';	    // for page not moving when moving the note
+    // dragObj.style.top = (_offsetY + e.clientY - _startY) + 'px';
 }
 
 function getMousePos(event) {
@@ -352,20 +411,22 @@ function init() {
     var btnColor = document.getElementById("clusterColorStickies");
     btnColor.addEventListener("click", function () { clusterColorStickies(); }, false);
 
-    
+
     // Adding event listener for searching sticky based on color
     var btnSearchNote = document.getElementById("searchNote");
-    btnSearchNote.addEventListener("click", function () { searchSticky(document.querySelector("input").value); }, false);
+    // btnSearchNote.addEventListener("click", function () { searchSticky(document.querySelector("input").value); }, false);
+    btnSearchNote.addEventListener("click", function () { searchSticky(); }, false);
+
 
     loadData();
     // Add event listeners
-    document.addEventListener("mousedown", mousedownHandler, false);
-    document.addEventListener("mouseup", mouseupHandler, false);
+    document.addEventListener("touchstart", mousedownHandler, false);
+    document.addEventListener("touchend", mouseupHandler, false);
 }
 
 
 function clusterColorStickies() {
-    
+
     // We initially support 2 clusters
     // Cluster 1: Red
     // Cluster 2: Green
@@ -379,80 +440,111 @@ function clusterColorStickies() {
 
     var c1_x1 = 0, c1_y1 = 0;
     var c1_xstart = 0, c1_ystart = 0;
-    var c2_x1 = width/2, c2_y1 = 0;
-    var c3_x1 = 0, c3_y1 = height/2; 
-    var c4_x1 = width/2, c4_y1 = height/2;
+    var c2_x1 = width / 2, c2_y1 = 0;
+    var c3_x1 = 0, c3_y1 = height / 2;
+    var c4_x1 = width / 2, c4_y1 = height / 2;
 
     for (var i = 0; i < localStorage.length; i++) {
         var key = localStorage.key(i);
         var values = localStorage.getItem(key);
         var value = JSON.parse(values);
-        
-        if(value[0].color == "#FFCCCC"){
+
+        if (value[0].color == "#FFCCCC") {
             document.getElementById(key).style.left = c1_x1 + "px";
             document.getElementById(key).style.top = c1_y1 + "px";
-            
-            if((c1_y1+180) < (height/2)){
-                c1_y1+=180;
+
+            if ((c1_y1 + 180) < (height / 2)) {
+                c1_y1 += 180;
             }
-            else{
-                c1_x1+=180;
-                c1_y1 = 0;
+            else {
+                c1_x1 += 180;
+                c1_y1 = c1_ystart;
             }
-            if((c1_x1+180) > width/2){
+            if ((c1_x1 + 180) > width / 2) {
                 c1_xstart += 20;
                 c1_ystart += 20;
                 c1_x1 = c1_xstart;
                 c1_y1 = c1_ystart;
 
             }
-            
+
         }
-        if(value[0].color == "#CCFFCC"){
+        if (value[0].color == "#CCFFCC") {
             document.getElementById(key).style.left = c2_x1 + "px";
             document.getElementById(key).style.top = c2_y1 + "px";
-            
-            if((c2_y1+180) < (height/2)){
-                c2_y1+=180;
+
+            if ((c2_y1 + 180) < (height / 2)) {
+                c2_y1 += 180;
             }
-            else{
-                c2_x1+=180;
+            else {
+                c2_x1 += 180;
                 c2_y1 = 0;
             }
         }
-        if(value[0].color == "#99CCFF"){
+        if (value[0].color == "#99CCFF") {
             document.getElementById(key).style.left = c3_x1 + "px";
             document.getElementById(key).style.top = c3_y1 + "px";
-            
-            if((c3_y1+180) < height){
-                c3_y1+=180;
+
+            if ((c3_y1 + 180) < height) {
+                c3_y1 += 180;
             }
-            else{
-                c3_x1+=180;
-                c3_y1 = height/2;
+            else {
+                c3_x1 += 180;
+                c3_y1 = height / 2;
             }
         }
-        if(value[0].color == "#FFFFCC"){
+        if (value[0].color == "#FFFFCC") {
             document.getElementById(key).style.left = c4_x1 + "px";
             document.getElementById(key).style.top = c4_y1 + "px";
-            
-            if((c4_y1+180) < height){
-                c4_y1+=180;
+
+            if ((c4_y1 + 180) < height) {
+                c4_y1 += 180;
             }
-            else{
-                c4_x1+=180;
-                c4_y1 = height/2;
+            else {
+                c4_x1 += 180;
+                c4_y1 = height / 2;
             }
         }
-    
+
     }
 }
 
 
-function searchSticky(search_text){
+function searchSticky() {
+
+    var h = window.screen.height - 280;
+    var w = window.screen.width - 500;
+    var input = document.createElement("input");
+    input.setAttribute("id", "tbInputText");
+    input.setAttribute("placeholder", "Search text here!");
+    input.type = 'text';
+    input.style.position = 'fixed';
+    input.style.left = w + "px";
+    input.style.top = h + "px";
+    input.style.width = 150 + "px";
+    input.style.height = 50 + "px";
+    input.style.backgroundColor = "yellow";
+
+    document.body.appendChild(input);
+    input.addEventListener('keydown', function (event) {
+        if (event.keyCode == 13) {
+            console.log("keydown");
+            search_text = document.getElementById('tbInputText').value;
+            document.getElementById("tbInputText").remove();
+            move_position_sticky(search_text);
+        }
+        if (event.keyCode == 27) {
+            document.getElementById("tbInputText").remove();
+        }
+    });
+
+}
+
+function move_position_sticky(search_text) {
 
     var count = 0;
     var sticky_key = 0;
+    var original_x = 0, original_y = 0;
 
     // console.log(search_text);
     for (var i = 0; i < localStorage.length; i++) {
@@ -463,18 +555,57 @@ function searchSticky(search_text){
 
         var str1 = value[0].text; // Text in stickies
         var n = str1.search(new RegExp(search_text, "i"));
-        if( n!= -1)break;
-        // console.log(str1);
-        // console.log(n);
-        // if(n>count){
-        //     count = n;
-        //     sticky_key = key;
-        // }
+        if (n != -1) {
+            original_x = value[0].notePositionLeft;
+            original_y = value[0].notePositionTop;
+            break;
+        }
     }
-    var height = window.screen.height/2;
-    var width = window.screen.width/2;
-    document.getElementById(key).style.left = height + "px";
-    document.getElementById(key).style.top = width + "px";
-    
+    if (n != -1) {
+        var height = window.screen.height - 300;
+        var width = window.screen.width - 300;
+        document.getElementById(key).style.top = height + "px";
+        document.getElementById(key).style.left = width + "px";
+        var sticky = document.getElementById(key);
+        sticky.addEventListener('keydown', function (event) {
+            if (event.keyCode == 13) {
+                sticky_position_change(key, original_x, original_y);
+            }
+        });
+    }
 
+
+}
+
+function sticky_position_change(key,new_x, new_y){
+    document.getElementById(key).style.left = new_x + "px";
+    document.getElementById(key).style.top = new_y + "px";
+    
+    // saveNote(key);
+    var obj = document.getElementById(key);
+
+    //parent
+    var values = [];
+    //record each node's value
+    var value = {};
+    //array for text input lists
+    var textValueList = [];
+    //array for text svg as x,y,and textcontent
+    value['text'] = (obj.childNodes[1].innerText);
+
+    var color = obj.firstElementChild.childNodes[2];
+    var selectedColor = color.options[color.options.selectedIndex].value;
+    value['color'] = selectedColor;
+
+    value['notePositionLeft'] = new_x;
+    value['notePositionTop'] = new_y; 
+    values.push(value);
+    values = JSON.stringify(values);
+
+    if (values.length > 0) {
+        //save to storage
+        console.log(values);
+        localStorage.setItem(key, values);
+
+    }
 }
