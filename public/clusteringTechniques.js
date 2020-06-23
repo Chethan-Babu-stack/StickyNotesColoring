@@ -81,3 +81,7 @@ function clusterColorStickies() {
 
     }
 }
+
+function k_mean(){
+    
+}
